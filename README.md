@@ -1,8 +1,8 @@
-# jolt-zig
+# joltc-zig
 
 !WIP!
 
-[joltC](https://github.com/amerkoleci/joltc) bindings for [Zig](https://ziglang.org/)
+[joltc](https://github.com/amerkoleci/joltc) bindings for [Zig](https://ziglang.org/)
 
 ## Acknowlegements
 - [JoltPhysics](https://github.com/jrouwe/JoltPhysics)

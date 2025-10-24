@@ -1,7 +1,7 @@
 .{
-    .name = .jolt_zig,
+    .name = .joltc_zig,
     .version = "0.0.0",
-    .fingerprint = 0x8772005f49831e5a, // Changing this has security and trust implications.
+    .fingerprint = 0x89591f3fa226df90,
     .minimum_zig_version = "0.15.2",
     .dependencies = .{
         .joltc = .{
@@ -17,5 +17,7 @@
         "build.zig",
         "build.zig.zon",
         "src",
+        "README.md",
+        "LICENSE",
     },
 }

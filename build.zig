@@ -43,7 +43,7 @@ pub fn build(b: *std.Build) !void {
     }
 
     const options_module = options_step.createModule();
-    const mod = b.addModule("jolt_zig", .{
+    const mod = b.addModule("joltc_zig", .{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
@@ -59,9 +59,9 @@ pub fn build(b: *std.Build) !void {
     const jph_dep = b.dependency("jolt_physics", .{});
     mod.addIncludePath(joltc_dep.path("include"));
 
-    const jolt = b.addLibrary(
+    const joltc = b.addLibrary(
         .{
-            .name = "jolt",
+            .name = "joltc",
             .linkage = if (options.shared) .dynamic else .static,
             .root_module = b.createModule(
                 .{
@@ -73,18 +73,18 @@ pub fn build(b: *std.Build) !void {
     );
 
     if (options.shared and target.result.os.tag == .windows) {
-        jolt.root_module.addCMacro("JPH_API", "extern __declspec(dllexport)");
+        joltc.root_module.addCMacro("JPH_API", "extern __declspec(dllexport)");
     }
-    b.installArtifact(jolt);
-    jolt.installHeader(joltc_dep.path("include/joltc.h"), "joltc.h");
+    b.installArtifact(joltc);
+    joltc.installHeader(joltc_dep.path("include/joltc.h"), "joltc.h");
 
-    jolt.addIncludePath(joltc_dep.path("include"));
-    jolt.addIncludePath(jph_dep.path(""));
-    jolt.linkLibC();
+    joltc.addIncludePath(joltc_dep.path("include"));
+    joltc.addIncludePath(jph_dep.path(""));
+    joltc.linkLibC();
     if (target.result.abi != .msvc) {
-        jolt.linkLibCpp();
+        joltc.linkLibCpp();
     } else {
-        jolt.linkSystemLibrary("advapi32");
+        joltc.linkSystemLibrary("advapi32");
     }
 
     const c_flags = &.{
@@ -94,7 +94,7 @@ pub fn build(b: *std.Build) !void {
         "-fno-sanitize=undefined",
     };
 
-    jolt.addCSourceFiles(.{
+    joltc.addCSourceFiles(.{
         .root = joltc_dep.path("src"),
         .files = &.{
             "joltc.cpp",
@@ -118,13 +118,13 @@ pub fn build(b: *std.Build) !void {
         try rel_files.append(allocator, rel_path);
     }
 
-    jolt.addCSourceFiles(.{
+    joltc.addCSourceFiles(.{
         .root = jph_dep.path("Jolt"),
         .files = rel_files.items,
         .flags = c_flags,
     });
 
-    mod.linkLibrary(jolt);
+    mod.linkLibrary(joltc);
 
     const mod_tests = b.addTest(.{
         .root_module = mod,
