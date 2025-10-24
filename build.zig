@@ -76,6 +76,7 @@ pub fn build(b: *std.Build) !void {
         jolt.root_module.addCMacro("JPH_API", "extern __declspec(dllexport)");
     }
     b.installArtifact(jolt);
+    jolt.installHeader(joltc_dep.path("include/joltc.h"), "joltc.h");
 
     jolt.addIncludePath(joltc_dep.path("include"));
     jolt.addIncludePath(jph_dep.path(""));
