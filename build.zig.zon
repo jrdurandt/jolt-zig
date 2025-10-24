@@ -2,7 +2,7 @@
     .name = .jolt_zig,
     .version = "0.0.0",
     .fingerprint = 0x8772005f49831e5a, // Changing this has security and trust implications.
-    .minimum_zig_version = "0.14.0",
+    .minimum_zig_version = "0.15.2",
     .dependencies = .{
         .joltc = .{
             .url = "https://github.com/amerkoleci/joltc/archive/refs/heads/main.zip",

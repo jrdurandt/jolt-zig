@@ -42,6 +42,21 @@ fn on_contact_removed(
     std.debug.print("[ContactListener] A contact was removed\n", .{});
 }
 
+fn on_body_activated(
+    _: ?*anyopaque,
+    _: c.JPH_BodyID,
+    _: u64,
+) callconv(.c) void {
+    std.debug.print("[BodyActivationListener] A body for activated\n", .{});
+}
+fn on_body_deactivated(
+    _: ?*anyopaque,
+    _: c.JPH_BodyID,
+    _: u64,
+) callconv(.c) void {
+    std.debug.print("[BodyActivationListener] A body went to sleep\n", .{});
+}
+
 test "hello world" {
     const OBJECT_LAYER_NON_MOVING: c.JPH_ObjectLayer = 0;
     const OBJECT_LAYER_MOVING: c.JPH_ObjectLayer = 1;
@@ -108,12 +123,18 @@ test "hello world" {
         .OnContactPersisted = on_contact_persisted,
         .OnContactRemoved = on_contact_removed,
     };
-
     const my_contact_listener = c.JPH_ContactListener_Create(null);
     c.JPH_ContactListener_SetProcs(&my_contact_listener_procs);
     defer c.JPH_ContactListener_Destroy(my_contact_listener);
-
     c.JPH_PhysicsSystem_SetContactListener(physics_system, my_contact_listener);
+
+    const my_activation_listener_procs = c.JPH_BodyActivationListener_Procs{
+        .OnBodyActivated = on_body_activated,
+        .OnBodyDeactivated = on_body_deactivated,
+    };
+    const my_activation_listener = c.JPH_BodyActivationListener_Create(null);
+    c.JPH_BodyActivationListener_SetProcs(&my_activation_listener_procs);
+    c.JPH_PhysicsSystem_SetBodyActivationListener(physics_system, my_activation_listener);
 
     const body_interface = c.JPH_PhysicsSystem_GetBodyInterface(physics_system);
 

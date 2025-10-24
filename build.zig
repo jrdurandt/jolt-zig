@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -101,143 +101,25 @@ pub fn build(b: *std.Build) void {
         .flags = c_flags,
     });
 
+    const allocator = b.allocator;
+    var cpp_files = try std.ArrayList([]const u8).initCapacity(allocator, 0);
+    defer cpp_files.deinit(allocator);
+
+    const jolt_path = jph_dep.path("Jolt");
+    const jph_root = try jolt_path.getPath3(b, null).toString(allocator);
+    try collectCppFiles(allocator, jph_root, &cpp_files);
+
+    var rel_files = try std.ArrayList([]const u8).initCapacity(allocator, cpp_files.items.len);
+    defer rel_files.deinit(allocator);
+
+    for (cpp_files.items) |abs_path| {
+        const rel_path = try std.fs.path.relative(allocator, jph_root, abs_path);
+        try rel_files.append(allocator, rel_path);
+    }
+
     jolt.addCSourceFiles(.{
         .root = jph_dep.path("Jolt"),
-        .files = &.{
-            "AABBTree/AABBTreeBuilder.cpp",
-            "Core/Color.cpp",
-            "Core/Factory.cpp",
-            "Core/IssueReporting.cpp",
-            "Core/JobSystemSingleThreaded.cpp",
-            "Core/JobSystemThreadPool.cpp",
-            "Core/JobSystemWithBarrier.cpp",
-            "Core/LinearCurve.cpp",
-            "Core/Memory.cpp",
-            "Core/Profiler.cpp",
-            "Core/RTTI.cpp",
-            "Core/Semaphore.cpp",
-            "Core/StringTools.cpp",
-            "Core/TickCounter.cpp",
-            "Geometry/ConvexHullBuilder.cpp",
-            "Geometry/ConvexHullBuilder2D.cpp",
-            "Geometry/Indexify.cpp",
-            "Geometry/OrientedBox.cpp",
-            "Math/Vec3.cpp",
-            "ObjectStream/ObjectStream.cpp",
-            "ObjectStream/ObjectStreamBinaryIn.cpp",
-            "ObjectStream/ObjectStreamBinaryOut.cpp",
-            "ObjectStream/ObjectStreamIn.cpp",
-            "ObjectStream/ObjectStreamOut.cpp",
-            "ObjectStream/ObjectStreamTextIn.cpp",
-            "ObjectStream/ObjectStreamTextOut.cpp",
-            "ObjectStream/SerializableObject.cpp",
-            "ObjectStream/TypeDeclarations.cpp",
-            "Physics/Body/Body.cpp",
-            "Physics/Body/BodyCreationSettings.cpp",
-            "Physics/Body/BodyInterface.cpp",
-            "Physics/Body/BodyManager.cpp",
-            "Physics/Body/MassProperties.cpp",
-            "Physics/Body/MotionProperties.cpp",
-            "Physics/Character/Character.cpp",
-            "Physics/Character/CharacterBase.cpp",
-            "Physics/Character/CharacterVirtual.cpp",
-            "Physics/Collision/BroadPhase/BroadPhase.cpp",
-            "Physics/Collision/BroadPhase/BroadPhaseBruteForce.cpp",
-            "Physics/Collision/BroadPhase/BroadPhaseQuadTree.cpp",
-            "Physics/Collision/BroadPhase/QuadTree.cpp",
-            "Physics/Collision/CastConvexVsTriangles.cpp",
-            "Physics/Collision/CastSphereVsTriangles.cpp",
-            "Physics/Collision/CollideConvexVsTriangles.cpp",
-            "Physics/Collision/CollideSphereVsTriangles.cpp",
-            "Physics/Collision/CollisionDispatch.cpp",
-            "Physics/Collision/CollisionGroup.cpp",
-            "Physics/Collision/EstimateCollisionResponse.cpp",
-            "Physics/Collision/GroupFilter.cpp",
-            "Physics/Collision/GroupFilterTable.cpp",
-            "Physics/Collision/ManifoldBetweenTwoFaces.cpp",
-            "Physics/Collision/NarrowPhaseQuery.cpp",
-            "Physics/Collision/NarrowPhaseStats.cpp",
-            "Physics/Collision/PhysicsMaterial.cpp",
-            "Physics/Collision/PhysicsMaterialSimple.cpp",
-            "Physics/Collision/Shape/BoxShape.cpp",
-            "Physics/Collision/Shape/CapsuleShape.cpp",
-            "Physics/Collision/Shape/CompoundShape.cpp",
-            "Physics/Collision/Shape/ConvexHullShape.cpp",
-            "Physics/Collision/Shape/ConvexShape.cpp",
-            "Physics/Collision/Shape/CylinderShape.cpp",
-            "Physics/Collision/Shape/DecoratedShape.cpp",
-            "Physics/Collision/Shape/EmptyShape.cpp",
-            "Physics/Collision/Shape/HeightFieldShape.cpp",
-            "Physics/Collision/Shape/MeshShape.cpp",
-            "Physics/Collision/Shape/MutableCompoundShape.cpp",
-            "Physics/Collision/Shape/OffsetCenterOfMassShape.cpp",
-            "Physics/Collision/Shape/PlaneShape.cpp",
-            "Physics/Collision/Shape/RotatedTranslatedShape.cpp",
-            "Physics/Collision/Shape/ScaledShape.cpp",
-            "Physics/Collision/Shape/Shape.cpp",
-            "Physics/Collision/Shape/SphereShape.cpp",
-            "Physics/Collision/Shape/StaticCompoundShape.cpp",
-            "Physics/Collision/Shape/TaperedCapsuleShape.cpp",
-            "Physics/Collision/Shape/TaperedCylinderShape.cpp",
-            "Physics/Collision/Shape/TriangleShape.cpp",
-            "Physics/Collision/TransformedShape.cpp",
-            "Physics/Constraints/ConeConstraint.cpp",
-            "Physics/Constraints/Constraint.cpp",
-            "Physics/Constraints/ConstraintManager.cpp",
-            "Physics/Constraints/ContactConstraintManager.cpp",
-            "Physics/Constraints/DistanceConstraint.cpp",
-            "Physics/Constraints/FixedConstraint.cpp",
-            "Physics/Constraints/GearConstraint.cpp",
-            "Physics/Constraints/HingeConstraint.cpp",
-            "Physics/Constraints/MotorSettings.cpp",
-            "Physics/Constraints/PathConstraint.cpp",
-            "Physics/Constraints/PathConstraintPath.cpp",
-            "Physics/Constraints/PathConstraintPathHermite.cpp",
-            "Physics/Constraints/PointConstraint.cpp",
-            "Physics/Constraints/PulleyConstraint.cpp",
-            "Physics/Constraints/RackAndPinionConstraint.cpp",
-            "Physics/Constraints/SixDOFConstraint.cpp",
-            "Physics/Constraints/SliderConstraint.cpp",
-            "Physics/Constraints/SpringSettings.cpp",
-            "Physics/Constraints/SwingTwistConstraint.cpp",
-            "Physics/Constraints/TwoBodyConstraint.cpp",
-            "Physics/DeterminismLog.cpp",
-            "Physics/IslandBuilder.cpp",
-            "Physics/LargeIslandSplitter.cpp",
-            "Physics/PhysicsScene.cpp",
-            "Physics/PhysicsSystem.cpp",
-            "Physics/PhysicsUpdateContext.cpp",
-            "Physics/Ragdoll/Ragdoll.cpp",
-            "Physics/SoftBody/SoftBodyCreationSettings.cpp",
-            "Physics/SoftBody/SoftBodyMotionProperties.cpp",
-            "Physics/SoftBody/SoftBodyShape.cpp",
-            "Physics/SoftBody/SoftBodySharedSettings.cpp",
-            "Physics/StateRecorderImpl.cpp",
-            "Physics/Vehicle/MotorcycleController.cpp",
-            "Physics/Vehicle/TrackedVehicleController.cpp",
-            "Physics/Vehicle/VehicleAntiRollBar.cpp",
-            "Physics/Vehicle/VehicleCollisionTester.cpp",
-            "Physics/Vehicle/VehicleConstraint.cpp",
-            "Physics/Vehicle/VehicleController.cpp",
-            "Physics/Vehicle/VehicleDifferential.cpp",
-            "Physics/Vehicle/VehicleEngine.cpp",
-            "Physics/Vehicle/VehicleTrack.cpp",
-            "Physics/Vehicle/VehicleTransmission.cpp",
-            "Physics/Vehicle/Wheel.cpp",
-            "Physics/Vehicle/WheeledVehicleController.cpp",
-            "RegisterTypes.cpp",
-            "Renderer/DebugRenderer.cpp",
-            "Renderer/DebugRendererPlayback.cpp",
-            "Renderer/DebugRendererRecorder.cpp",
-            "Renderer/DebugRendererSimple.cpp",
-            "Skeleton/SkeletalAnimation.cpp",
-            "Skeleton/Skeleton.cpp",
-            "Skeleton/SkeletonMapper.cpp",
-            "Skeleton/SkeletonPose.cpp",
-            "TriangleSplitter/TriangleSplitter.cpp",
-            "TriangleSplitter/TriangleSplitterBinning.cpp",
-            "TriangleSplitter/TriangleSplitterMean.cpp",
-        },
+        .files = rel_files.items,
         .flags = c_flags,
     });
 
@@ -247,9 +129,31 @@ pub fn build(b: *std.Build) void {
         .root_module = mod,
     });
 
-    // A run step that will run the test executable.
     const run_mod_tests = b.addRunArtifact(mod_tests);
 
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_mod_tests.step);
+}
+
+fn collectCppFiles(
+    allocator: std.mem.Allocator,
+    dir_path: []const u8,
+    files: *std.ArrayList([]const u8),
+) !void {
+    var dir = try std.fs.openDirAbsolute(dir_path, .{ .iterate = true });
+    defer dir.close();
+
+    var it = dir.iterate();
+    while (try it.next()) |entry| {
+        const full_path = try std.fs.path.join(allocator, &.{ dir_path, entry.name });
+        switch (entry.kind) {
+            .file => {
+                if (std.mem.endsWith(u8, entry.name, ".cpp")) {
+                    try files.append(allocator, full_path);
+                }
+            },
+            .directory => try collectCppFiles(allocator, full_path, files),
+            else => {},
+        }
+    }
 }
