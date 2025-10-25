@@ -5,12 +5,12 @@
     .minimum_zig_version = "0.15.2",
     .dependencies = .{
         .joltc = .{
-            .url = "https://github.com/amerkoleci/joltc/archive/refs/heads/main.zip",
-            .hash = "1220d36a60ffcce81a78db741688a03abfe9af85b67ae65ee5b978a435a3933fcab9",
+            .url = "https://github.com/amerkoleci/joltc/archive/8bbe852aaf1b8f652027c11e60f63136f73c8083.tar.gz",
+            .hash = "N-V-__8AAGTcCADTamD_zOgaeNt0FoigOr_pr4W2euZe5bl4",
         },
         .jolt_physics = .{
             .url = "https://github.com/jrouwe/JoltPhysics/archive/refs/tags/v5.4.0.zip",
-            .hash = "1220f41d363dff93e39d66052768c590b45244eb587abbbcf47abcccafc6e308e732",
+            .hash = "N-V-__8AAFIjDAL0HTY9_5PjnWYFJ2jFkLRSROtYeru89Hq8",
         },
     },
     .paths = .{
