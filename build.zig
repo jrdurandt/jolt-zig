@@ -5,26 +5,6 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
 
     const options = .{
-        .use_double_precision = b.option(
-            bool,
-            "use_double_precision",
-            "Enable double precision",
-        ) orelse false,
-        .enable_asserts = b.option(
-            bool,
-            "enable_asserts",
-            "Enable assertions",
-        ) orelse (optimize == .Debug),
-        .enable_cross_platform_determinism = b.option(
-            bool,
-            "enable_cross_platform_determinism",
-            "Enables cross-platform determinism",
-        ) orelse true,
-        .enable_debug_renderer = b.option(
-            bool,
-            "enable_debug_renderer",
-            "Enable debug renderer",
-        ) orelse false,
         .shared = b.option(
             bool,
             "shared",
@@ -37,27 +17,8 @@ pub fn build(b: *std.Build) !void {
         ) orelse true,
     };
 
-    const options_step = b.addOptions();
-    inline for (std.meta.fields(@TypeOf(options))) |field| {
-        options_step.addOption(field.type, field.name, @field(options, field.name));
-    }
-
-    const options_module = options_step.createModule();
-    const mod = b.addModule("joltc_zig", .{
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize,
-        .imports = &.{
-            .{
-                .name = "joltc_options",
-                .module = options_module,
-            },
-        },
-    });
-
     const joltc_dep = b.dependency("joltc", .{});
     const jph_dep = b.dependency("jolt_physics", .{});
-    mod.addIncludePath(joltc_dep.path("include"));
 
     const joltc = b.addLibrary(
         .{
@@ -124,14 +85,17 @@ pub fn build(b: *std.Build) !void {
         .flags = c_flags,
     });
 
-    mod.linkLibrary(joltc);
-
+    const test_mod = b.addModule("joltc_zig_test", .{
+        .root_source_file = b.path("src/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    test_mod.linkLibrary(joltc);
     const mod_tests = b.addTest(.{
-        .root_module = mod,
+        .root_module = test_mod,
     });
 
     const run_mod_tests = b.addRunArtifact(mod_tests);
-
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_mod_tests.step);
 }
